@@ -6,14 +6,13 @@ import { getTransactions } from "@/lib/storage";
 
 const REMINDER_STORAGE_KEY = "fpa_last_missing_spend_reminder";
 
-function formatLocalDate(date) {
-  return date.toLocaleDateString("en-CA");
-}
-
 function getYesterdayDateKey() {
   const yesterday = new Date();
   yesterday.setDate(yesterday.getDate() - 1);
-  return formatLocalDate(yesterday);
+  const year = yesterday.getFullYear();
+  const month = String(yesterday.getMonth() + 1).padStart(2, "0");
+  const day = String(yesterday.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
 }
 
 export default function SpendingReminder() {

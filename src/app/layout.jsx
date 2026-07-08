@@ -10,6 +10,9 @@ const inter = Inter({
 export const metadata = {
   title: 'Financial Planning & Analysis',
   description: 'A modern, premium expense and income dashboard',
+  icons: {
+    icon: '/logo.png',
+  },
 };
 
 export default function RootLayout({ children }) {

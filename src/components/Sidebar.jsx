@@ -32,7 +32,7 @@ export default function Sidebar({ collapsed, onToggleCollapse, onClose }) {
 
       {/* Sidebar Logo Header */}
       <div className="logo-container">
-        <div className="logo-icon">$</div>
+        <img src="/logo.png" alt="Logo" className="logo-icon" />
         <span className="logo-text">Financial Planner</span>
         
         {/* Mobile close button (styled display: none on desktop) */}

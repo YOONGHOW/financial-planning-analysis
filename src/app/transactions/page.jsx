@@ -28,6 +28,7 @@ export default function TransactionsList() {
   const [typeFilter, setTypeFilter] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [selectedMonth, setSelectedMonth] = useState("");
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
   // Edit Form States
   const [editingTx, setEditingTx] = useState(null);
@@ -251,7 +252,7 @@ export default function TransactionsList() {
       </div>
 
       {/* Filter and Search Bar Card */}
-      <div className="section-card" style={{ gap: "20px", padding: "24px" }}>
+      <div className="section-card desktop-filters" style={{ gap: "20px", padding: "24px" }}>
         <div style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr 1fr 1fr", gap: "16px" }}>
           
           {/* Search box */}
@@ -314,6 +315,96 @@ export default function TransactionsList() {
         </div>
       </div>
 
+      {/* Mobile Search & Filter Trigger Bar */}
+      <div className="mobile-search-container">
+        <div style={{ position: "relative", flex: 1 }}>
+          <input
+            type="text"
+            className="form-input"
+            style={{ width: "100%", padding: "12px 16px 12px 40px", fontSize: "0.95rem" }}
+            placeholder="Search payee or description..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+          <span style={{ position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)", color: "var(--text-muted)", pointerEvents: "none" }}>
+            🔍
+          </span>
+        </div>
+        <button 
+          className={`mobile-filter-trigger ${mobileFiltersOpen || selectedMonth || typeFilter !== "all" || categoryFilter !== "all" ? "active" : ""}`}
+          onClick={() => setMobileFiltersOpen(true)}
+          aria-label="Filter transactions"
+        >
+          <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+          </svg>
+        </button>
+      </div>
+
+      {/* Mobile Filters Bottom Sheet */}
+      {mobileFiltersOpen && (
+        <div className="bottom-sheet-overlay" onClick={() => setMobileFiltersOpen(false)}>
+          <div className="bottom-sheet-content" onClick={(e) => e.stopPropagation()}>
+            <div className="bottom-sheet-header">
+              <span className="bottom-sheet-title">Filter Records</span>
+              <button className="bottom-sheet-close-btn" onClick={() => setMobileFiltersOpen(false)}>
+                ✕
+              </button>
+            </div>
+            
+            <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+              {/* Month Dropdown */}
+              <div className="form-group">
+                <label className="form-label" style={{ fontSize: "0.8rem" }}>Filter Month</label>
+                <CustomSelect
+                  id="mobile-month-filter"
+                  value={selectedMonth}
+                  onChange={(val) => setSelectedMonth(val)}
+                  options={uniqueMonths.map(m => ({ value: m, label: formatMonthLabel(m) }))}
+                />
+              </div>
+
+              {/* Type Dropdown */}
+              <div className="form-group">
+                <label className="form-label" style={{ fontSize: "0.8rem" }}>Transaction Type</label>
+                <CustomSelect
+                  id="mobile-type-filter"
+                  value={typeFilter}
+                  onChange={(val) => setTypeFilter(val)}
+                  options={[
+                    { value: "all", label: "All Types" },
+                    { value: "spend", label: "Spend / Expense", icon: "💸" },
+                    { value: "earn", label: "Earn / Income", icon: "📈" },
+                  ]}
+                />
+              </div>
+
+              {/* Category Dropdown */}
+              <div className="form-group">
+                <label className="form-label" style={{ fontSize: "0.8rem" }}>Category</label>
+                <CustomSelect
+                  id="mobile-cat-filter"
+                  value={categoryFilter}
+                  onChange={(val) => setCategoryFilter(val)}
+                  options={[
+                    { value: "all", label: "All Categories" },
+                    ...availableCategories.map(cat => ({ value: cat, label: cat }))
+                  ]}
+                />
+              </div>
+            </div>
+
+            <button 
+              className="btn btn-primary" 
+              style={{ width: "100%", marginTop: "10px" }}
+              onClick={() => setMobileFiltersOpen(false)}
+            >
+              Apply Filters
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Filtered Subset Statistics Bar */}
       <div className="stats-summary-bar">
         <div className="stats-summary-item">
@@ -336,7 +427,7 @@ export default function TransactionsList() {
         </div>
       </div>
 
-      {/* Main Table Display */}
+      {/* Main Table & Mobile List Display */}
       {filteredTransactions.length === 0 ? (
         <div className="empty-state" style={{ backgroundColor: "var(--bg-card)" }}>
           <span style={{ fontSize: "2.5rem" }}>🔍</span>
@@ -344,40 +435,127 @@ export default function TransactionsList() {
           <p>Try adjusting your search query or filters to inspect other entries.</p>
         </div>
       ) : (
-        <div className="table-wrapper">
-          <table className="fpa-table">
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Title / Payee</th>
-                <th>Category</th>
-                <th>Type</th>
-                <th>Amount</th>
-                <th style={{ textAlign: "right" }}>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredTransactions.map((tx) => (
-                <tr key={tx.id}>
-                  {/* Date column */}
-                  <td style={{ fontWeight: 500, fontSize: "0.9rem", color: "var(--text-secondary)" }}>
-                    {formatDate(tx.date)}
-                  </td>
-                  
-                  {/* Title / payee column */}
-                  <td>
-                    <div style={{ display: "flex", flexDirection: "column" }}>
-                      <span style={{ fontWeight: 600 }}>{tx.title}</span>
-                      {tx.description && (
-                        <span style={{ fontSize: "0.8rem", color: "var(--text-muted)", marginTop: "2px" }}>
-                          {tx.description}
-                        </span>
-                      )}
-                    </div>
-                  </td>
-                  
-                  {/* Category Column */}
-                  <td>
+        <>
+          {/* Desktop Table View */}
+          <div className="table-wrapper">
+            <table className="fpa-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Title / Payee</th>
+                  <th>Category</th>
+                  <th>Type</th>
+                  <th>Amount</th>
+                  <th style={{ textAlign: "right" }}>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredTransactions.map((tx) => (
+                  <tr key={tx.id}>
+                    {/* Date column */}
+                    <td style={{ fontWeight: 500, fontSize: "0.9rem", color: "var(--text-secondary)" }}>
+                      {formatDate(tx.date)}
+                    </td>
+                    
+                    {/* Title / payee column */}
+                    <td>
+                      <div style={{ display: "flex", flexDirection: "column" }}>
+                        <span style={{ fontWeight: 600 }}>{tx.title}</span>
+                        {tx.description && (
+                          <span style={{ fontSize: "0.8rem", color: "var(--text-muted)", marginTop: "2px" }}>
+                            {tx.description}
+                          </span>
+                        )}
+                      </div>
+                    </td>
+                    
+                    {/* Category Column */}
+                    <td>
+                      <span 
+                        className="badge" 
+                        style={{ 
+                          backgroundColor: `${CATEGORY_COLORS[tx.category] || "#64748b"}15`, 
+                          color: CATEGORY_COLORS[tx.category] || "#64748b",
+                          borderColor: `${CATEGORY_COLORS[tx.category] || "#64748b"}30` 
+                        }}
+                      >
+                        {tx.category || "Other"}
+                      </span>
+                    </td>
+                    
+                    {/* Type Column */}
+                    <td>
+                      <span className={`badge ${tx.type === "earn" ? "badge-earn" : "badge-spend"}`}>
+                        {tx.type === "earn" ? "Earn" : "Spend"}
+                      </span>
+                    </td>
+                    
+                    {/* Amount Column */}
+                    <td style={{ fontWeight: 700, fontFamily: "monospace", fontSize: "1rem" }} className={tx.type === "earn" ? "text-earn" : "text-spend"}>
+                      {tx.type === "earn" ? "+" : "-"} {formatCurrency(tx.amount)}
+                    </td>
+                    
+                    {/* Actions Column */}
+                    <td style={{ textAlign: "right" }}>
+                      <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}>
+                        <button
+                          className="edit-action-btn"
+                          onClick={() => handleStartEdit(tx)}
+                        >
+                          <svg 
+                            width="14" 
+                            height="14" 
+                            fill="none" 
+                            viewBox="0 0 24 24" 
+                            stroke="currentColor" 
+                            strokeWidth="2.5"
+                          >
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                          </svg>
+                          Edit
+                        </button>
+                        <button
+                          className="delete-action-btn"
+                          onClick={() => handleDeleteTx(tx.id, tx.title)}
+                        >
+                          <svg 
+                            width="14" 
+                            height="14" 
+                            fill="none" 
+                            viewBox="0 0 24 24" 
+                            stroke="currentColor" 
+                            strokeWidth="2"
+                          >
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                          Delete
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Mobile Line-by-Line Cards View */}
+          <div className="mobile-transactions-list">
+            {filteredTransactions.map((tx) => (
+              <div key={tx.id} className="mobile-transaction-card">
+                <div className="mobile-tx-header">
+                  <div className="mobile-tx-title-section">
+                    <span className="mobile-tx-title">{tx.title}</span>
+                    {tx.description && (
+                      <span className="mobile-tx-desc">{tx.description}</span>
+                    )}
+                  </div>
+                  <span className={`mobile-tx-amount ${tx.type === "earn" ? "text-earn" : "text-spend"}`} style={{ fontFamily: "monospace" }}>
+                    {tx.type === "earn" ? "+" : "-"} {formatCurrency(tx.amount)}
+                  </span>
+                </div>
+
+                <div className="mobile-tx-body">
+                  <div className="mobile-tx-meta">
                     <span 
                       className="badge" 
                       style={{ 
@@ -388,62 +566,34 @@ export default function TransactionsList() {
                     >
                       {tx.category || "Other"}
                     </span>
-                  </td>
-                  
-                  {/* Type Column */}
-                  <td>
                     <span className={`badge ${tx.type === "earn" ? "badge-earn" : "badge-spend"}`}>
                       {tx.type === "earn" ? "Earn" : "Spend"}
                     </span>
-                  </td>
-                  
-                  {/* Amount Column */}
-                  <td style={{ fontWeight: 700, fontFamily: "monospace", fontSize: "1rem" }} className={tx.type === "earn" ? "text-earn" : "text-spend"}>
-                    {tx.type === "earn" ? "+" : "-"} {formatCurrency(tx.amount)}
-                  </td>
-                  
-                  {/* Actions Column */}
-                  <td style={{ textAlign: "right" }}>
-                    <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                    <span className="mobile-tx-date">{formatDate(tx.date)}</span>
+                    <div style={{ display: "flex", gap: "6px" }}>
                       <button
                         className="edit-action-btn"
+                        style={{ padding: "6px 8px", fontSize: "0.75rem", gap: "4px" }}
                         onClick={() => handleStartEdit(tx)}
                       >
-                        <svg 
-                          width="14" 
-                          height="14" 
-                          fill="none" 
-                          viewBox="0 0 24 24" 
-                          stroke="currentColor" 
-                          strokeWidth="2.5"
-                        >
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                        </svg>
                         Edit
                       </button>
                       <button
                         className="delete-action-btn"
+                        style={{ padding: "6px 8px", fontSize: "0.75rem", gap: "4px" }}
                         onClick={() => handleDeleteTx(tx.id, tx.title)}
                       >
-                        <svg 
-                          width="14" 
-                          height="14" 
-                          fill="none" 
-                          viewBox="0 0 24 24" 
-                          stroke="currentColor" 
-                          strokeWidth="2"
-                        >
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
                         Delete
                       </button>
                     </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
       )}
 
       {/* Edit Drawer Modal */}

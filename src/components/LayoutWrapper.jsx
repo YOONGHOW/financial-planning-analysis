@@ -44,7 +44,10 @@ export default function LayoutWrapper({ children }) {
             <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
           </svg>
         </button>
-        <span className="mobile-logo-text">Financial Planner</span>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <img src="/logo.png" alt="Logo" className="logo-icon" style={{ height: "32px", width: "auto" }} />
+          <span className="mobile-logo-text">Financial Planner</span>
+        </div>
         <div style={{ width: "24px" }} /> {/* Spacer to balance logo text */}
       </header>
 
@@ -69,6 +72,7 @@ export default function LayoutWrapper({ children }) {
 
       {/* Content Area */}
       <main className="main-content">
+        <SpendingReminder />
         {children}
       </main>
     </div>
