@@ -12,6 +12,7 @@ export const metadata = {
   description: 'A modern, premium expense and income dashboard',
   icons: {
     icon: '/logo.png',
+    apple: '/logo.png',
   },
 };
 
