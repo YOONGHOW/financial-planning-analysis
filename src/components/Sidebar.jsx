@@ -252,6 +252,24 @@ export default function Sidebar({ collapsed, onToggleCollapse, onClose }) {
           ></i>
           <span className="nav-text">Calendar</span>
         </Link>
+
+        <Link
+          href="/couple"
+          className={`nav-item ${pathname === "/couple" ? "active" : ""}`}
+          onClick={handleLinkClick}
+        >
+          <i
+            className="fa-solid fa-heart nav-icon"
+            style={{
+              fontSize: "1.25rem",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              color: "#ff4b72"
+            }}
+          ></i>
+          <span className="nav-text">Couple</span>
+        </Link>
       </nav>
 
       {/* Sidebar User Footer */}

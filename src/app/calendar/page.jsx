@@ -13,6 +13,7 @@ export default function CalendarPage() {
   const [grossSalary, setGrossSalary] = useState(4200.0);
   const [fixedSpends, setFixedSpends] = useState([]);
   const [savingsTarget, setSavingsTarget] = useState(20);
+  const [coupleData, setCoupleData] = useState(null);
 
   // Date states
   const [currentDate, setCurrentDate] = useState(() => new Date());
@@ -35,6 +36,9 @@ export default function CalendarPage() {
         setFixedSpends(fixed || []);
         if (settings.savings_target !== undefined) {
           setSavingsTarget(parseInt(settings.savings_target));
+        }
+        if (settings.coupleData) {
+          setCoupleData(settings.coupleData);
         }
       } catch (err) {
         console.error("Failed to load budget settings on calendar page", err);
@@ -101,6 +105,90 @@ export default function CalendarPage() {
     });
     return map;
   }, [tasks]);
+
+  // Couple Forecast Calculations
+  const periodDateStr = useMemo(() => {
+    if (!coupleData || !coupleData.periodStartDate) return null;
+    try {
+      const pStart = new Date(coupleData.periodStartDate);
+      const cycleLength = coupleData.cycleLength || 28;
+      const dStart = new Date(pStart.getFullYear(), pStart.getMonth(), pStart.getDate());
+      
+      const today = new Date();
+      const dToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+
+      const daysSincePStart = Math.floor((dToday - dStart) / (1000 * 60 * 60 * 24));
+      
+      const nextPeriodStart = new Date(dStart.getTime() + cycleLength * (1000 * 60 * 60 * 24));
+      let projectedNextStart = new Date(nextPeriodStart);
+      if (dToday >= projectedNextStart) {
+        const remainingCycles = Math.floor(daysSincePStart / cycleLength) + 1;
+        projectedNextStart = new Date(dStart.getTime() + (remainingCycles * cycleLength) * (1000 * 60 * 60 * 24));
+      }
+
+      const y = projectedNextStart.getFullYear();
+      const m = String(projectedNextStart.getMonth() + 1).padStart(2, "0");
+      const d = String(projectedNextStart.getDate()).padStart(2, "0");
+      return `${y}-${m}-${d}`;
+    } catch (e) {
+      console.error(e);
+      return null;
+    }
+  }, [coupleData]);
+
+  const milestoneInfo = useMemo(() => {
+    try {
+      const start = new Date(2022, 7, 4); // Aug 4 2022
+      const today = new Date();
+      const dStart = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+      const dToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+      
+      const diffDays = Math.floor((dToday - dStart) / (1000 * 60 * 60 * 24));
+      const currentFiveHundredMultiplier = Math.floor(diffDays / 500) + 1;
+      const nextMilestoneDays = currentFiveHundredMultiplier * 500;
+      const nextMilestoneDate = new Date(dStart.getTime() + nextMilestoneDays * (1000 * 60 * 60 * 24));
+      
+      const y = nextMilestoneDate.getFullYear();
+      const m = String(nextMilestoneDate.getMonth() + 1).padStart(2, "0");
+      const d = String(nextMilestoneDate.getDate()).padStart(2, "0");
+      return {
+        dateStr: `${y}-${m}-${d}`,
+        days: nextMilestoneDays
+      };
+    } catch (e) {
+      console.error(e);
+      return { dateStr: "", days: 500 };
+    }
+  }, []);
+
+  const anniversaryDateStr = useMemo(() => {
+    try {
+      const today = new Date();
+      const dToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+
+      // Anniversary is Aug 4 each year starting from 2022
+      let annivYear = today.getFullYear();
+      let candidateAnniv = new Date(annivYear, 7, 4); // Aug 4 this year
+
+      // If Aug 4 has already passed this year, move to next year
+      if (dToday > candidateAnniv) {
+        annivYear += 1;
+        candidateAnniv = new Date(annivYear, 7, 4);
+      }
+
+      const y = candidateAnniv.getFullYear();
+      const m = String(candidateAnniv.getMonth() + 1).padStart(2, "0");
+      const d = String(candidateAnniv.getDate()).padStart(2, "0");
+      const anniversaryNum = y - 2022;
+      return {
+        dateStr: `${y}-${m}-${d}`,
+        num: anniversaryNum,
+      };
+    } catch (e) {
+      console.error(e);
+      return { dateStr: "", num: 0 };
+    }
+  }, []);
 
   // Calendar Helpers
   const year = currentDate.getFullYear();
@@ -533,6 +621,120 @@ export default function CalendarPage() {
                         <i className="fa-solid fa-list-check" style={{ fontSize: "0.6rem" }}></i>
                         {cell.tasks.length}
                       </span>
+                    )}
+
+                    {/* Period Date Marker */}
+                    {cell.dateStr === periodDateStr && (
+                      <>
+                        <span 
+                          className="desktop-only-indicator"
+                          style={{ 
+                            fontSize: "0.66rem", 
+                            fontWeight: "700", 
+                            color: "#ff4b72",
+                            background: "rgba(255, 75, 114, 0.12)",
+                            padding: "2px 4px",
+                            borderRadius: "4px",
+                            alignSelf: "flex-start",
+                            marginTop: "2px",
+                            whiteSpace: "nowrap"
+                          }}
+                        >
+                          🩸 Period
+                        </span>
+                        <span 
+                          className="mobile-only-indicator"
+                          style={{ 
+                            fontSize: "0.56rem", 
+                            fontWeight: "700", 
+                            color: "#ff4b72",
+                            background: "rgba(255, 75, 114, 0.12)",
+                            padding: "1px 3px",
+                            borderRadius: "3px",
+                            alignSelf: "flex-start",
+                            marginTop: "1px",
+                            lineHeight: 1
+                          }}
+                        >
+                          🩸 Period
+                        </span>
+                      </>
+                    )}
+
+                    {/* Milestone Date Marker */}
+                    {cell.dateStr === milestoneInfo.dateStr && (
+                      <>
+                        <span 
+                          className="desktop-only-indicator"
+                          style={{ 
+                            fontSize: "0.66rem", 
+                            fontWeight: "700", 
+                            color: "#ff4b72",
+                            background: "rgba(255, 75, 114, 0.12)",
+                            padding: "2px 4px",
+                            borderRadius: "4px",
+                            alignSelf: "flex-start",
+                            marginTop: "2px",
+                            whiteSpace: "nowrap"
+                          }}
+                        >
+                          💖 {milestoneInfo.days}d
+                        </span>
+                        <span 
+                          className="mobile-only-indicator"
+                          style={{ 
+                            fontSize: "0.56rem", 
+                            fontWeight: "700", 
+                            color: "#ff4b72",
+                            background: "rgba(255, 75, 114, 0.12)",
+                            padding: "1px 3px",
+                            borderRadius: "3px",
+                            alignSelf: "flex-start",
+                            marginTop: "1px",
+                            lineHeight: 1
+                          }}
+                        >
+                        💖 {milestoneInfo.days}d
+                        </span>
+                      </>
+                    )}
+
+                    {/* Anniversary Marker */}
+                    {cell.dateStr === anniversaryDateStr.dateStr && (
+                      <>
+                        <span
+                          className="desktop-only-indicator"
+                          style={{
+                            fontSize: "0.66rem",
+                            fontWeight: "700",
+                            color: "#ff4b72",
+                            background: "rgba(255, 75, 114, 0.12)",
+                            padding: "2px 4px",
+                            borderRadius: "4px",
+                            alignSelf: "flex-start",
+                            marginTop: "2px",
+                            whiteSpace: "nowrap"
+                          }}
+                        >
+                          🎂 {anniversaryDateStr.num}yr Anniv
+                        </span>
+                        <span
+                          className="mobile-only-indicator"
+                          style={{
+                            fontSize: "0.56rem",
+                            fontWeight: "700",
+                            color: "#ff4b72",
+                            background: "rgba(255, 75, 114, 0.12)",
+                            padding: "1px 3px",
+                            borderRadius: "3px",
+                            alignSelf: "flex-start",
+                            marginTop: "1px",
+                            lineHeight: 1
+                          }}
+                        >
+                          🎂 {anniversaryDateStr.num}yr
+                        </span>
+                      </>
                     )}
                   </div>
                 </div>

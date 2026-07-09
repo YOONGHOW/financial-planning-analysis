@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Sidebar from "./Sidebar";
 import SpendingReminder from "./SpendingReminder";
+import CoupleReminder from "./CoupleReminder";
 
 export default function LayoutWrapper({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -64,6 +65,7 @@ export default function LayoutWrapper({ children }) {
       className={`app-container ${sidebarCollapsed ? "sidebar-collapsed" : ""}`}
     >
       <SpendingReminder />
+      <CoupleReminder />
 
       {/* Mobile Top Navbar Header */}
       <header className="mobile-header">

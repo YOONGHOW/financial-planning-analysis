@@ -160,3 +160,12 @@ export async function getDebts() {
 export async function saveDebts(debts) {
   return await saveSetting("debts", debts);
 }
+
+export async function getCoupleData() {
+  const settings = await getSettings();
+  return settings.coupleData || { periodStartDate: "", cycleLength: 28, periodDuration: 5 };
+}
+
+export async function saveCoupleData(data) {
+  return await saveSetting("coupleData", data);
+}
