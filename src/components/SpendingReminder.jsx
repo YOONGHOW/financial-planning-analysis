@@ -47,7 +47,7 @@ export default function SpendingReminder() {
       });
 
       if ("Notification" in window && Notification.permission === "granted") {
-        new Notification("Financial Planner", {
+        new Notification("My SuperApp", {
           body: "Remember to fill in yesterday's spend.",
         });
       }

@@ -2020,4 +2020,133 @@ img.logo-icon {
   }
 }
 
+/* ==========================================================================
+   Super App - Tasks & Notepad Elegant Styling
+   ========================================================================== */
+
+.card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-shadow: var(--shadow-md);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.card:hover {
+  border-color: var(--border-hover);
+  box-shadow: var(--shadow-glow);
+}
+
+.task-item {
+  transition: all var(--transition-normal);
+}
+
+.task-item.completed {
+  border-left-color: var(--text-muted) !important;
+  background: rgba(255, 255, 255, 0.01) !important;
+}
+
+@media (max-width: 900px) {
+  .super-app-layout {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Notepad Mobile View Adjustments */
+@media (max-width: 768px) {
+  .notepad-workspace {
+    display: flex !important;
+    flex-direction: column !important;
+    height: 100% !important;
+  }
+  
+  .notepad-list-pane.mobile-hidden,
+  .notepad-editor-pane.mobile-hidden {
+    display: none !important;
+  }
+  
+  .notepad-list-pane,
+  .notepad-editor-pane {
+    width: 100% !important;
+    flex-grow: 1 !important;
+    height: 100% !important;
+  }
+
+  .mobile-only-btn {
+    display: block !important;
+  }
+
+  .split-tab-btn {
+    display: none !important;
+  }
+}
+
+@media (min-width: 769px) {
+  .mobile-only-btn {
+    display: none !important;
+  }
+}
+
+/* Skeleton Loading Pulsing Animation */
+@keyframes skeleton-glow {
+  0% { opacity: 0.45; }
+  50% { opacity: 0.85; }
+  100% { opacity: 0.45; }
+}
+
+.skeleton-pulse {
+  animation: skeleton-glow 1.5s ease-in-out infinite;
+}
+
+/* Calendar Page Premium Layout */
+@media (min-width: 768px) {
+  .day-details-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 24px !important;
+  }
+}
+
+.calendar-cell:hover {
+  transform: translateY(-2px);
+  background: var(--bg-card-hover) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* Mobile responsive calendar grid overrides */
+@media (max-width: 768px) {
+  .calendar-cell {
+    min-height: 52px !important;
+    padding: 6px 4px !important;
+    gap: 0 !important;
+  }
+  
+  .desktop-only-indicator {
+    display: none !important;
+  }
+  
+  .mobile-only-indicator {
+    display: inline-flex !important;
+  }
+
+  .day-summary-amounts {
+    flex-direction: column !important;
+    align-items: flex-end !important;
+    gap: 2px !important;
+  }
+}
+
+@media (min-width: 769px) {
+  .desktop-only-indicator {
+    display: inline-flex !important;
+  }
+  
+  .mobile-only-indicator {
+    display: none !important;
+  }
+}
+
 

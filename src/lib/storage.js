@@ -151,3 +151,12 @@ export async function deleteGoal(id) {
     return { success: false, error: e.message };
   }
 }
+
+export async function getDebts() {
+  const settings = await getSettings();
+  return settings.debts || [];
+}
+
+export async function saveDebts(debts) {
+  return await saveSetting("debts", debts);
+}

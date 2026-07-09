@@ -1,7 +1,7 @@
 export default function manifest() {
   return {
-    name: 'Financial Planning & Analysis',
-    short_name: 'FPA',
+    name: 'Personal Super App',
+    short_name: 'My SuperApp',
     description: 'A modern, premium expense and income dashboard',
     start_url: '/',
     display: 'standalone',

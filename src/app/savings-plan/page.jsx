@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState, useEffect, useMemo } from "react";
 import {
   getMonthlySalary,
@@ -162,37 +163,47 @@ export default function SavingsPlan() {
     setAllocations(updated);
   };
 
-  // Financial Calculations
+  // Remaining calculation variables (EPF calculations, monthly calculations)
   const calculations = useMemo(() => {
-    const epf = grossSalary * 0.11;
-    const socso = Math.min(grossSalary * 0.005, 24.75);
-    const manualFixed = fixedSpends.reduce((sum, item) => sum + item.amount, 0);
-    const totalFixed = epf + socso + manualFixed;
-
+    const epfRate = 0.11;
+    const socsoRate = 0.005;
+    const epfDeduction = grossSalary * epfRate;
+    const socsoDeduction = grossSalary * socsoRate;
+    
+    // Sum fixed spends
+    const fixedSum = fixedSpends.reduce((sum, item) => sum + item.amount, 0);
+    const totalFixed = fixedSum + epfDeduction + socsoDeduction;
+    
     const savingsGoal = grossSalary * (savingsTarget / 100);
-
-    // Discretionary income pool for flexible category budgets
-    const discretionaryPool = Math.max(
-      0,
-      grossSalary - totalFixed - savingsGoal,
-    );
-
-    // Dynamic Category Budget Recommendations
+    const disposableIncome = Math.max(0, grossSalary - totalFixed - savingsGoal);
+    
+    // Distribute allocations on disposable income
     const categoryBudgets = {};
     Object.keys(allocations).forEach((cat) => {
-      categoryBudgets[cat] = discretionaryPool * (allocations[cat] / 100);
+      categoryBudgets[cat] = disposableIncome * (allocations[cat] / 100);
     });
-
+    
     return {
-      epf,
-      socso,
-      manualFixed,
+      epfDeduction,
+      socsoDeduction,
+      fixedSum,
       totalFixed,
       savingsGoal,
-      discretionaryPool,
+      disposableIncome,
+      discretionaryPool: disposableIncome,
       categoryBudgets,
     };
   }, [grossSalary, fixedSpends, savingsTarget, allocations]);
+
+  const handleSaveSettings = async () => {
+    try {
+      await saveSetting("savings_target", savingsTarget.toString());
+      await saveSetting("category_allocations", allocations);
+      setIsEditing(false);
+    } catch (e) {
+      console.error("Failed to save settings", e);
+    }
+  };
 
   // Helper format currency
   const formatCurrency = (val) => {
@@ -246,8 +257,22 @@ export default function SavingsPlan() {
           </p>
         </div>
 
-        {/* Month Selector Filter */}
-        <div className="filter-container">
+        {/* Month Selector Filter & Yearly Planner link */}
+        <div className="filter-container" style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+          <Link
+            href="/yearly-planner"
+            className="btn btn-secondary"
+            style={{
+              padding: "8px 16px",
+              fontSize: "0.85rem",
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+              height: "38px"
+            }}
+          >
+            📅 Yearly Planner
+          </Link>
           <div style={{ minWidth: "200px" }}>
             <CustomSelect
               id="savings-month-filter"

@@ -39,6 +39,10 @@ export default function Dashboard() {
   const [tempSalary, setTempSalary] = useState("");
   const [goals, setGoals] = useState([]);
 
+  // Super App States
+  const [tasks, setTasks] = useState([]);
+  const [notes, setNotes] = useState([]);
+
   // Set mounted status on client load
   useEffect(() => {
     setMounted(true);
@@ -52,12 +56,47 @@ export default function Dashboard() {
         setFixedSpends(fixed);
         setMonthlySalary(salary);
         setGoals(dbGoals);
+
+        // Load Super App components
+        const savedTasks = localStorage.getItem("personal_super_app_tasks");
+        if (savedTasks) {
+          try {
+            setTasks(JSON.parse(savedTasks));
+          } catch (e) {}
+        }
+        const savedNotes = localStorage.getItem("personal_super_app_notes");
+        if (savedNotes) {
+          try {
+            setNotes(JSON.parse(savedNotes));
+          } catch (e) {}
+        }
       } catch (err) {
         console.error("Failed to load dashboard data", err);
       }
     };
     loadData();
   }, []);
+
+  const handleToggleTaskDashboard = (id) => {
+    const updated = tasks.map((task) =>
+      task.id === id ? { ...task, completed: !task.completed } : task,
+    );
+    setTasks(updated);
+    localStorage.setItem("personal_super_app_tasks", JSON.stringify(updated));
+
+    // Sync with Service Worker for background reminders
+    if (
+      typeof window !== "undefined" &&
+      "serviceWorker" in navigator &&
+      navigator.serviceWorker.controller
+    ) {
+      const uncompleted = updated.filter((t) => !t.completed);
+      navigator.serviceWorker.controller.postMessage({
+        type: "SET_TASKS",
+        tasks: uncompleted,
+      });
+    }
+  };
 
   const handleSaveSalary = async () => {
     const parsed = parseFloat(tempSalary);
@@ -86,7 +125,7 @@ export default function Dashboard() {
   // Calculate Cumulative Actual Balance (Net Worth)
   const totalBalance = useMemo(() => {
     let balance = 0;
-    transactions.forEach(t => {
+    transactions.forEach((t) => {
       if (t.type === "earn") {
         balance += t.amount;
       } else if (t.type === "spend") {
@@ -98,9 +137,11 @@ export default function Dashboard() {
 
   // Next Upcoming Goal
   const nextGoal = useMemo(() => {
-    return goals
-      .filter(g => !g.completed)
-      .sort((a, b) => a.target_date.localeCompare(b.target_date))[0] || null;
+    return (
+      goals
+        .filter((g) => !g.completed)
+        .sort((a, b) => a.target_date.localeCompare(b.target_date))[0] || null
+    );
   }, [goals]);
 
   // Extract all unique months from transactions for the filter dropdown
@@ -340,7 +381,7 @@ export default function Dashboard() {
   if (!mounted) {
     return (
       <div className="empty-state">
-        <h2>Loading Financial Planner...</h2>
+        <h2>Loading my super app...</h2>
       </div>
     );
   }
@@ -443,15 +484,32 @@ export default function Dashboard() {
               size="compact"
               value={selectedMonth}
               onChange={(val) => setSelectedMonth(val)}
-              options={uniqueMonths.map((m) => ({ value: m, label: formatMonthLabel(m) }))}
+              options={uniqueMonths.map((m) => ({
+                value: m,
+                label: formatMonthLabel(m),
+              }))}
             />
           </div>
         </div>
       </div>
 
       {/* Wealth & Goals Summary Panel */}
-      <div className="kpi-grid" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "20px", marginBottom: "-12px" }}>
-        <div className="kpi-card" style={{ borderLeftColor: "var(--primary)", background: "linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(0, 0, 0, 0) 100%)" }}>
+      <div
+        className="kpi-grid"
+        style={{
+          gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+          gap: "20px",
+          marginBottom: "-12px",
+        }}
+      >
+        <div
+          className="kpi-card"
+          style={{
+            borderLeftColor: "var(--primary)",
+            background:
+              "linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(0, 0, 0, 0) 100%)",
+          }}
+        >
           <span className="kpi-title">Total Balance (Net Worth)</span>
           <span className="kpi-value" style={{ color: "#ffffff" }}>
             {formatCurrency(totalBalance)}
@@ -461,32 +519,70 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div className="kpi-card" style={{ borderLeftColor: "#f59e0b", background: "linear-gradient(135deg, rgba(245, 158, 11, 0.05) 0%, rgba(0, 0, 0, 0) 100%)" }}>
+        <div
+          className="kpi-card"
+          style={{
+            borderLeftColor: "#f59e0b",
+            background:
+              "linear-gradient(135deg, rgba(245, 158, 11, 0.05) 0%, rgba(0, 0, 0, 0) 100%)",
+          }}
+        >
           <span className="kpi-title">Active Planner Goals</span>
           <span className="kpi-value" style={{ color: "#f59e0b" }}>
-            {goals.filter(g => !g.completed).length} Goals
+            {goals.filter((g) => !g.completed).length} Goals
           </span>
           <div className="kpi-meta">
-            <span>{goals.filter(g => g.completed).length} completed milestones</span>
+            <span>
+              {goals.filter((g) => g.completed).length} completed milestones
+            </span>
           </div>
         </div>
 
-        <div className="kpi-card" style={{ borderLeftColor: "#ec4899", background: "linear-gradient(135deg, rgba(236, 72, 153, 0.05) 0%, rgba(0, 0, 0, 0) 100%)" }}>
+        <div
+          className="kpi-card"
+          style={{
+            borderLeftColor: "#ec4899",
+            background:
+              "linear-gradient(135deg, rgba(236, 72, 153, 0.05) 0%, rgba(0, 0, 0, 0) 100%)",
+          }}
+        >
           <span className="kpi-title">Next Milestone Goal</span>
           {nextGoal ? (
             <>
-              <span className="kpi-value" style={{ fontSize: "1.35rem", marginTop: "4px", color: "#ec4899" }}>
+              <span
+                className="kpi-value"
+                style={{
+                  fontSize: "1.35rem",
+                  marginTop: "4px",
+                  color: "#ec4899",
+                }}
+              >
                 {nextGoal.title}
               </span>
               <div className="kpi-meta">
-                <span>{formatCurrency(nextGoal.amount)} due {nextGoal.target_date}</span>
+                <span>
+                  {formatCurrency(nextGoal.amount)} due {nextGoal.target_date}
+                </span>
               </div>
             </>
           ) : (
             <>
-              <span className="kpi-value" style={{ color: "var(--text-muted)", fontSize: "1.35rem" }}>No active goals</span>
+              <span
+                className="kpi-value"
+                style={{ color: "var(--text-muted)", fontSize: "1.35rem" }}
+              >
+                No active goals
+              </span>
               <div className="kpi-meta">
-                <Link href="/yearly-planner" style={{ color: "var(--primary)", textDecoration: "underline" }}>Configure Planner</Link>
+                <Link
+                  href="/yearly-planner"
+                  style={{
+                    color: "var(--primary)",
+                    textDecoration: "underline",
+                  }}
+                >
+                  Configure Planner
+                </Link>
               </div>
             </>
           )}
@@ -679,6 +775,215 @@ export default function Dashboard() {
         </div>
       </div>
 
+      {/* Super App Quick Widgets */}
+      <div className="dashboard-grid" style={{ marginTop: "24px" }}>
+        {/* Quick Tasks Widget */}
+        <div className="section-card">
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: "16px",
+            }}
+          >
+            <h2 className="section-title" style={{ marginBottom: 0 }}>
+              <i
+                className="fa-solid fa-list-check"
+                style={{ marginRight: "6px" }}
+              ></i>{" "}
+              Quick Tasks
+            </h2>
+            <Link
+              href="/tasks"
+              className="btn btn-secondary"
+              style={{ padding: "4px 10px", fontSize: "0.8rem" }}
+            >
+              Manage
+            </Link>
+          </div>
+
+          <div
+            style={{ display: "flex", flexDirection: "column", gap: "10px" }}
+          >
+            {tasks.filter((t) => !t.completed).slice(0, 3).length === 0 ? (
+              <p
+                style={{
+                  color: "var(--text-muted)",
+                  fontSize: "0.9rem",
+                  fontStyle: "italic",
+                  textAlign: "center",
+                  padding: "16px 0",
+                }}
+              >
+                No active tasks. Good job!
+              </p>
+            ) : (
+              tasks
+                .filter((t) => !t.completed)
+                .slice(0, 3)
+                .map((task) => (
+                  <div
+                    key={task.id}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "12px",
+                      padding: "10px 12px",
+                      borderRadius: "var(--radius-sm)",
+                      background: "rgba(255,255,255,0.02)",
+                      border: "1px solid var(--border-color)",
+                    }}
+                  >
+                    <div
+                      onClick={() => handleToggleTaskDashboard(task.id)}
+                      style={{
+                        width: "18px",
+                        height: "18px",
+                        borderRadius: "5px",
+                        border: "2px solid var(--text-muted)",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        cursor: "pointer",
+                        flexShrink: 0,
+                        transition: "all 0.2s ease",
+                      }}
+                    >
+                      {task.completed && (
+                        <i
+                          className="fa-solid fa-check"
+                          style={{ fontSize: "9px", color: "white" }}
+                        ></i>
+                      )}
+                    </div>
+                    <div
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        flexGrow: 1,
+                      }}
+                    >
+                      <span
+                        style={{
+                          fontSize: "0.9rem",
+                          color: "var(--text-primary)",
+                          fontWeight: "500",
+                        }}
+                      >
+                        {task.title}
+                      </span>
+                      <span
+                        style={{
+                          fontSize: "0.75rem",
+                          color: "var(--text-muted)",
+                        }}
+                      >
+                        <i
+                          className="fa-solid fa-tag"
+                          style={{ marginRight: "4px", fontSize: "0.7rem" }}
+                        ></i>{" "}
+                        {task.category} • {task.priority} Priority
+                      </span>
+                    </div>
+                  </div>
+                ))
+            )}
+          </div>
+        </div>
+
+        {/* Recent Notes Widget */}
+        <div className="section-card">
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: "16px",
+            }}
+          >
+            <h2 className="section-title" style={{ marginBottom: 0 }}>
+              <i
+                className="fa-regular fa-clipboard"
+                style={{ marginRight: "6px" }}
+              ></i>{" "}
+              Recent Notes
+            </h2>
+            <Link
+              href="/notepad"
+              className="btn btn-secondary"
+              style={{ padding: "4px 10px", fontSize: "0.8rem" }}
+            >
+              Manage
+            </Link>
+          </div>
+
+          <div
+            style={{ display: "flex", flexDirection: "column", gap: "10px" }}
+          >
+            {notes.slice(0, 3).length === 0 ? (
+              <p
+                style={{
+                  color: "var(--text-muted)",
+                  fontSize: "0.9rem",
+                  fontStyle: "italic",
+                  textAlign: "center",
+                  padding: "16px 0",
+                }}
+              >
+                No notes created yet.
+              </p>
+            ) : (
+              notes.slice(0, 3).map((note) => (
+                <Link
+                  href={`/notepad?id=${note.id}`}
+                  key={note.id}
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "4px",
+                    padding: "10px 12px",
+                    borderRadius: "var(--radius-sm)",
+                    background: "rgba(255,255,255,0.02)",
+                    border: "1px solid var(--border-color)",
+                    transition: "border-color 0.2s ease",
+                  }}
+                  onMouseEnter={(e) =>
+                    (e.currentTarget.style.borderColor = "var(--border-hover)")
+                  }
+                  onMouseLeave={(e) =>
+                    (e.currentTarget.style.borderColor = "var(--border-color)")
+                  }
+                >
+                  <span
+                    style={{
+                      fontSize: "0.9rem",
+                      color: "var(--text-primary)",
+                      fontWeight: "600",
+                    }}
+                  >
+                    {note.title || "Untitled Note"}
+                  </span>
+                  <span
+                    style={{
+                      fontSize: "0.75rem",
+                      color: "var(--text-muted)",
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                    }}
+                  >
+                    {note.content
+                      ? note.content.substring(0, 50) + "..."
+                      : "Empty note content"}
+                  </span>
+                </Link>
+              ))
+            )}
+          </div>
+        </div>
+      </div>
+
       {/* Category Detail Modal Side Drawer */}
       {selectedCategoryDetails && (
         <div
@@ -740,7 +1045,11 @@ export default function Dashboard() {
                               if (!tx.date) return "";
                               const parts = tx.date.split("T")[0].split("-");
                               if (parts.length !== 3) return tx.date;
-                              const date = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+                              const date = new Date(
+                                parseInt(parts[0]),
+                                parseInt(parts[1]) - 1,
+                                parseInt(parts[2]),
+                              );
                               return date.toLocaleDateString("en-US", {
                                 day: "numeric",
                                 month: "short",
