@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
+import Link from "next/link";
 import { saveTransaction } from "@/lib/storage";
 import CustomSelect from "@/components/CustomSelect";
 
@@ -241,11 +242,31 @@ export default function AddTransaction() {
         ))}
       </div>
 
-      <div className="page-header">
+      <div className="page-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "16px" }}>
         <div>
           <h1 className="page-title">Add Transaction</h1>
           <p className="page-subtitle">Log new expense or income entries manually</p>
         </div>
+        <Link
+          href="/fixed"
+          className="btn"
+          style={{
+            padding: "8px 28px",
+            fontSize: "0.85rem",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "6px",
+            height: "38px",
+            minWidth: "180px",
+            background: "#f59e0b",
+            color: "#0f172a",
+            border: "none",
+            fontWeight: "700"
+          }}
+        >
+          🔒 Fixed Spends
+        </Link>
       </div>
 
       <div className="form-container">

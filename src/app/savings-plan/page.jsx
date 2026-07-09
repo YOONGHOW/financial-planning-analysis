@@ -257,8 +257,22 @@ export default function SavingsPlan() {
           </p>
         </div>
 
-        {/* Month Selector Filter & Yearly Planner link */}
+        {/* Month Selector Filter & Navigation links */}
         <div className="filter-container" style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+          <Link
+            href="/debt-planner"
+            className="btn btn-secondary"
+            style={{
+              padding: "8px 16px",
+              fontSize: "0.85rem",
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+              height: "38px"
+            }}
+          >
+            ⚖️ Debt Planner
+          </Link>
           <Link
             href="/yearly-planner"
             className="btn btn-secondary"

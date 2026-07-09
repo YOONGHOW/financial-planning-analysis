@@ -135,26 +135,7 @@ export default function Sidebar({ collapsed, onToggleCollapse, onClose }) {
           <span className="nav-text">Transactions</span>
         </Link>
 
-        <Link
-          href="/fixed"
-          className={`nav-item ${pathname === "/fixed" ? "active" : ""}`}
-          onClick={handleLinkClick}
-        >
-          <svg
-            className="nav-icon"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-            />
-          </svg>
-          <span className="nav-text">Fixed Spends</span>
-        </Link>
+
 
         <Link
           href="/savings-plan"
@@ -177,22 +158,7 @@ export default function Sidebar({ collapsed, onToggleCollapse, onClose }) {
           <span className="nav-text">Savings Plan</span>
         </Link>
 
-        <Link
-          href="/debt-planner"
-          className={`nav-item ${pathname === "/debt-planner" ? "active" : ""}`}
-          onClick={handleLinkClick}
-        >
-          <i
-            className="fa-solid fa-scale-unbalanced nav-icon"
-            style={{
-              fontSize: "1.25rem",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          ></i>
-          <span className="nav-text">Debt Planner</span>
-        </Link>
+
 
         <Link
           href="/tasks"
